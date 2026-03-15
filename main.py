@@ -10,8 +10,16 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 from textblob import TextBlob
 from sqlalchemy.orm import Session
+from groq import Groq
+import json
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app=FastAPI()
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 DATABASE_URL= "sqlite:///./journal.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -40,6 +48,7 @@ class Journal(Base):
     sentiment = Column(String)
     keywords = Column(String)
     summary = Column(String)
+    mood_score= Column(Integer)
     created_at = Column(String)
     user = relationship("User", back_populates="journals")
 
@@ -92,40 +101,29 @@ def get_current_user(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")   
 
+def analyze_with_ai(content:str):
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role":"user",
+                "content":f"""Analyze this journal entry and respond in JSON format only:
+Journal:{content}
+Respond with this JSON structure:
+{{
 
-def summarize(content:str):
-    blob=TextBlob(content)
-    sentances=blob.sentences
-    total_sentances=len(sentances)
-    first_sentance=str(sentances[0])
-    last_sentance=str(sentances[-1])
-    return{
-    "first_sentence": first_sentance,
-    "last_sentence": last_sentance,
-    "total_sentences": total_sentances
-}
+    "sentiment": "Positive/Negative/Neutral",
+    "keywords": ["keyword1", "keyword2", "keyword3"],
+    "summary": "one sentence summary",
+    "mood_score": 1-10
+}}"""
+            }
+        ]
+    )
+    result=response.choices[0].message.content
+    return json.loads(result)
 
-def get_sentiment(content:str):
-    testimonial=TextBlob(content)
-    polarity=testimonial.sentiment.polarity
-    if polarity > 0 :
-        category="Positive"
-    elif polarity==0 :
-        category="Neutral" 
-    else :
-        category="Negative"
-    return{
-        "text": content ,
-        "polarity":polarity,
-        "sentiment": category
-    }
 
-def get_keywords(content:str):
-    blob=TextBlob(content)
-    keyword=blob.noun_phrases
-    return{
-        "Keywords":keyword
-    }
 
 @app.get("/")
 def root():
@@ -163,15 +161,14 @@ def create_journal(
     db: Session = Depends(get_db)
                    ):
     content=journal.content
-    sentiment=get_sentiment(content)
-    keywords=get_keywords(content)
-    summary=summarize(content)
+    analysis=analyze_with_ai(content)
     created_at=str(datetime.now())
     new_journal=Journal(user_id=current_user.id,
                         content=journal.content,
-                        sentiment=sentiment["sentiment"],
-                        keywords=str(keywords["Keywords"]),
-                        summary=summary["first_sentence"],
+                        sentiment=analysis["sentiment"],
+                        keywords=str(analysis["keywords"]),
+                        summary=analysis["summary"],
+                        mood_score=analysis["mood_score"],
                         created_at=created_at)
     db.add(new_journal)
     db.commit()
@@ -248,7 +245,7 @@ def get_weekly_report(
             neutral+=1
         else:
             negative+=1
-        
+            
     return{
         "total_entries":len(entries),
         "positive_days":positive,
