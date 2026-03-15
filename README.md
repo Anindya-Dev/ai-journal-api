@@ -1,406 +1,441 @@
 # AI Journal API
 
-A **FastAPI-based AI-powered journaling backend** that allows users to create personal journal entries and automatically analyze them using basic Natural Language Processing (NLP).
+A FastAPI-based AI-powered journaling backend that allows users to create personal journal entries and automatically analyze them using Large Language Models (LLMs).
 
-The API performs **sentiment analysis, keyword extraction, and summarization** for each journal entry and provides a **weekly mood report** based on the user's emotional trends.
+Each journal entry is processed using Groq's Llama 3.3 70B model, enabling intelligent sentiment detection, keyword extraction, summarization, and mood scoring.
+
+The API also generates a weekly emotional trend report based on the user's journal history.
 
 This project demonstrates how to combine:
 
-* **FastAPI** for building modern APIs
-* **SQLAlchemy** for database ORM
-* **JWT Authentication** for secure login
-* **TextBlob NLP** for text analysis
+- FastAPI for building modern APIs
+- SQLAlchemy for database ORM
+- JWT Authentication for secure login
+- Groq LLM (Llama 3.3 70B) for intelligent journal analysis
 
----
 
-# Features
+--------------------------------------------------
 
-### User Authentication
+FEATURES
 
-* User signup with email and password
-* Secure password hashing using **bcrypt**
-* JWT-based authentication
-* OAuth2 password flow login
+User Authentication
 
-### Journal Entry Analysis
+- User signup with email and password
+- Secure password hashing using bcrypt
+- JWT-based authentication
+- OAuth2 password flow login
 
-Each journal entry is automatically analyzed for:
 
-* Sentiment (Positive / Neutral / Negative)
-* Keywords extraction
-* Automatic summary generation
-* Timestamp recording
+--------------------------------------------------
 
-### Journal Management
+AI JOURNAL ANALYSIS
+
+Each journal entry is analyzed using a Groq-powered LLM pipeline that extracts:
+
+- Sentiment classification (Positive / Neutral / Negative)
+- Mood score (0–10 emotional scale)
+- Keyword extraction
+- Intelligent summary generation
+- Timestamp recording
+
+This replaces traditional rule-based NLP with LLM-based semantic understanding.
+
+
+--------------------------------------------------
+
+JOURNAL MANAGEMENT
 
 Users can:
 
-* Create new journal entries
-* View all their entries
-* View a specific journal entry
-* Access a weekly mood report
+- Create new journal entries
+- View all their entries
+- View a specific journal entry
+- Access a weekly mood report
 
-### Weekly Mood Analytics
 
-The API calculates emotional trends for the last **7 days** and returns:
+--------------------------------------------------
 
-* Total journal entries
-* Positive mood days
-* Neutral mood days
-* Negative mood days
+WEEKLY MOOD ANALYTICS
 
----
+The API analyzes journal entries from the last 7 days and returns:
 
-# Tech Stack
+- Total journal entries
+- Positive mood days
+- Neutral mood days
+- Negative mood days
+- Overall emotional trend
 
-| Technology        | Purpose                      |
-| ----------------- | ---------------------------- |
-| FastAPI           | Backend API framework        |
-| SQLAlchemy        | ORM for database interaction |
-| SQLite            | Local database               |
-| JWT (python-jose) | Authentication               |
-| Passlib (bcrypt)  | Password hashing             |
-| TextBlob          | NLP analysis                 |
-| Pydantic          | Data validation              |
 
----
+--------------------------------------------------
 
-# Project Structure
+TECH STACK
 
-```
+Technology: Purpose
+
+FastAPI — Backend API framework  
+SQLAlchemy — ORM for database interaction  
+SQLite — Local database  
+JWT (python-jose) — Authentication  
+Passlib (bcrypt) — Password hashing  
+Groq API — LLM inference  
+Llama 3.3 70B — Journal analysis model  
+Pydantic — Data validation
+
+
+--------------------------------------------------
+
+PROJECT STRUCTURE
+
 AI-Journal-API
-│
-├── main.py
-├── journal.db
-├── requirements.txt
-└── README.md
-```
 
----
+main.py  
+journal.db  
+requirements.txt  
+.env  
+README.md
 
-# Installation
 
-### 1. Clone the repository
+--------------------------------------------------
 
-```
+INSTALLATION
+
+1. Clone the repository
+
 git clone https://github.com/your-username/ai-journal-api.git
 cd ai-journal-api
-```
 
----
 
-### 2. Create virtual environment
+--------------------------------------------------
 
-```
+2. Create virtual environment
+
 python -m venv venv
-```
 
-Activate it:
+
+Activate it
 
 Windows
 
-```
 venv\Scripts\activate
-```
+
 
 Mac/Linux
 
-```
 source venv/bin/activate
-```
 
----
 
-### 3. Install dependencies
+--------------------------------------------------
 
-```
-pip install fastapi uvicorn sqlalchemy passlib[bcrypt] python-jose textblob
-```
+3. Install dependencies
 
----
+pip install fastapi uvicorn sqlalchemy passlib[bcrypt] python-jose groq python-dotenv
 
-### 4. Run the server
 
-```
+--------------------------------------------------
+
+4. Configure Environment Variables
+
+Create a .env file in the root directory.
+
+GROQ_API_KEY=your_groq_api_key_here  
+SECRET_KEY=your_secret_key  
+ALGORITHM=HS256  
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+Using environment variables ensures secure API key management.
+
+
+--------------------------------------------------
+
+5. Run the server
+
 uvicorn main:app --reload
-```
 
-Server will run at:
 
-```
+Server runs at:
+
 http://127.0.0.1:8000
-```
+
 
 Interactive API docs:
 
-```
 http://127.0.0.1:8000/docs
-```
 
----
 
-# API Endpoints
+--------------------------------------------------
 
-## Root
+API ENDPOINTS
 
-### GET /
+
+ROOT
+
+GET /
 
 Returns API status.
 
 Response
 
-```
 {
   "message": "AI-JOURNAL-API is running"
 }
-```
 
----
 
-# Authentication
+--------------------------------------------------
 
-## Signup
+AUTHENTICATION
 
-### POST /signup
+
+Signup
+
+POST /signup
 
 Create a new user.
 
 Request Body
 
-```
 {
   "email": "user@example.com",
   "password": "securepassword"
 }
-```
 
 Response
 
-```
 {
   "message": "User created successfully",
   "email": "user@example.com"
 }
-```
 
----
 
-## Login
+--------------------------------------------------
 
-### POST /login
+Login
 
-Uses **OAuth2 password flow**.
+POST /login
+
+Uses OAuth2 password flow.
 
 Form Data
 
-```
-username: user@example.com
+username: user@example.com  
 password: securepassword
-```
 
 Response
 
-```
 {
   "access_token": "JWT_TOKEN",
   "token_type": "bearer"
 }
-```
 
-Use the token in headers:
+Use token in headers:
 
-```
 Authorization: Bearer <token>
-```
 
----
 
-# Journal Endpoints
+--------------------------------------------------
 
-## Create Journal Entry
+JOURNAL ENDPOINTS
 
-### POST /journal
 
-Creates a journal entry and performs NLP analysis.
+Create Journal Entry
+
+POST /journal
+
+Creates a journal entry and performs LLM-based analysis.
 
 Request Body
 
-```
 {
   "content": "Today I felt productive and completed my project."
 }
-```
 
 Response
 
-```
 {
   "message": "new journal created successfully"
 }
-```
 
-The system automatically extracts:
+The LLM automatically extracts:
 
-* Sentiment
-* Keywords
-* Summary
+- Sentiment
+- Mood score
+- Keywords
+- Summary
 
----
 
-## Get All Entries
+--------------------------------------------------
 
-### GET /entries
+Get All Entries
+
+GET /entries
 
 Returns all journal entries for the logged-in user.
 
 Example Response
 
-```
 [
   {
     "id": 1,
     "content": "Today was a productive day",
     "sentiment": "Positive",
-    "keywords": "project, work",
-    "summary": "Today was a productive day",
+    "mood_score": 8,
+    "keywords": "project, productivity",
+    "summary": "Completed an important project and felt productive.",
     "created_at": "2026-03-15"
   }
 ]
-```
 
----
 
-## Get Specific Entry
+--------------------------------------------------
 
-### GET /entries/{id}
+Get Specific Entry
+
+GET /entries/{id}
 
 Returns a specific journal entry.
 
-Security check ensures users **can only access their own entries**.
+Security check ensures users can only access their own entries.
 
 Example
 
-```
 GET /entries/1
-```
+
 
 Response
 
-```
 {
   "content": "Today I studied FastAPI",
   "sentiment": "Positive",
+  "mood_score": 7,
   "keywords": "fastapi, learning",
-  "summary": "Today I studied FastAPI",
+  "summary": "Studied FastAPI and explored backend API development.",
   "created_at": "2026-03-15"
 }
-```
 
----
 
-# Weekly Mood Report
+--------------------------------------------------
 
-### GET /weeklyreport
+WEEKLY MOOD REPORT
 
-Analyzes journal entries from the **last 7 days**.
+GET /weeklyreport
+
+Analyzes journal entries from the last 7 days.
 
 Example Response
 
-```
 {
   "total_entries": 5,
   "positive_days": 3,
   "neutral_days": 1,
   "negative_days": 1
 }
-```
 
 This provides a quick overview of the user's emotional trends.
 
----
 
-# NLP Processing
+--------------------------------------------------
 
-The API uses **TextBlob** for simple natural language processing.
+AI PROCESSING PIPELINE
 
-### Sentiment Analysis
 
-Determines whether an entry is:
+Sentiment Analysis
 
-* Positive
-* Neutral
-* Negative
+The Groq LLM classifies journal entries into:
 
-### Keyword Extraction
+- Positive
+- Neutral
+- Negative
 
-Extracts noun phrases to identify important topics.
 
-Example:
+--------------------------------------------------
 
-```
-"I worked on my AI project today"
-```
+Mood Score
 
-Keywords:
+Each entry receives a mood score from 0–10.
 
-```
-AI project
-```
+Score interpretation:
 
-### Summary
+0–3 → Negative  
+4–6 → Neutral  
+7–10 → Positive
 
-Currently extracts:
 
-* First sentence
-* Last sentence
-* Total number of sentences
+--------------------------------------------------
 
----
+Keyword Extraction
 
-# Security
+Important topics and concepts are extracted from the journal entry.
 
-The API uses:
+Example
 
-* **bcrypt password hashing**
-* **JWT token authentication**
-* **User ownership checks for journal entries**
+Input
 
-Users cannot access journals that belong to other users.
+"I worked on my AI project and learned FastAPI today."
 
----
+Keywords
 
-# Future Improvements
+AI project, FastAPI
+
+
+--------------------------------------------------
+
+Intelligent Summary
+
+The LLM generates a concise summary of the journal entry using semantic understanding.
+
+
+--------------------------------------------------
+
+SECURITY
+
+The API implements several security best practices:
+
+- bcrypt password hashing
+- JWT authentication
+- Environment variables for secret management
+- User ownership validation for journal entries
+
+Users cannot access journals belonging to other users.
+
+
+--------------------------------------------------
+
+FUTURE IMPROVEMENTS
 
 Possible enhancements:
 
-* LLM-powered journal summaries
-* Emotion trend graphs
-* Monthly mood analytics
-* Frontend dashboard
-* PostgreSQL production database
-* Async FastAPI endpoints
-* Deployment using Docker
+- Emotion trend visualization graphs
+- Monthly mood analytics
+- LLM-powered journaling insights
+- Frontend dashboard
+- PostgreSQL production database
+- Async FastAPI endpoints
+- Docker deployment
+- Vector search for journal retrieval
 
----
 
-# Learning Outcomes
+--------------------------------------------------
+
+LEARNING OUTCOMES
 
 This project demonstrates practical implementation of:
 
-* REST API development
-* Authentication systems
-* Database ORM relationships
-* Basic NLP integration
-* Secure backend design
+- REST API development
+- Authentication systems
+- SQLAlchemy ORM relationships
+- LLM integration in backend applications
+- Secure environment variable management
+- AI-assisted personal analytics
 
----
 
-# License
+--------------------------------------------------
+
+LICENSE
 
 This project is open source and available for educational and personal use.
 
----
 
-# Author
+--------------------------------------------------
 
-Developed as a backend project exploring **AI-assisted journaling and sentiment analysis APIs using FastAPI**.
+AUTHOR
+
+Developed as a backend project exploring AI-assisted journaling and LLM-powered emotional analytics using FastAPI and Groq.
