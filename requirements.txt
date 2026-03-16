@@ -1,7 +1,12 @@
-fastapi[standard]
+fastapi
+uvicorn
 sqlalchemy
-textblob
-python-jose[cryptography] 
-passlib[bcrypt==4.0.1] 
+python-jose[cryptography]
+passlib[bcrypt]
 python-multipart
 groq
+python-dotenv
+sentence-transformers
+chromadb
+bcrypt==4.0.1
+scikit-learn

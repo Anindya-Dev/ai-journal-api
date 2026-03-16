@@ -1,3 +1,6 @@
 __pycache__
 journal.db
 .env
+test_chroma.py
+test_embeddings.py
+chroma_db

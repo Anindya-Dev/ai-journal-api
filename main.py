@@ -14,6 +14,9 @@ from groq import Groq
 import json
 from dotenv import load_dotenv
 import os
+from sentence_transformers import SentenceTransformer
+import chromadb
+
 
 load_dotenv()
 
@@ -25,6 +28,12 @@ DATABASE_URL= "sqlite:///./journal.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
+
+embedding_model= SentenceTransformer('all-MiniLM-L6-v2')
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+journal_collection= chroma_client.get_or_create_collection("journals")
+
+
 
 SECRET_KEY = "your-secret-key-keep-it-safe"
 ALGORITHM = "HS256"
@@ -174,6 +183,11 @@ def create_journal(
     db.commit()
     db.refresh(new_journal)
     db.close()
+    journal_collection.add(
+    documents=[content],
+    embeddings=embedding_model.encode([content]).tolist(),
+    ids=[str(new_journal.id)]
+    )
     return{"message":"new journal created successfully"}
 
 
@@ -252,3 +266,28 @@ def get_weekly_report(
         "neutral_days":neutral,
         "negative_days":negative
     }
+
+@app.get("/search")
+def search_journals(
+    query:str,
+    current_user: User = Depends(get_current_user),
+    db:Session = Depends(get_db)
+                    ):
+    results= journal_collection.query(
+        query_embeddings=embedding_model.encode([query]).tolist(),
+        n_results=2
+    )
+    
+    matching_ids= results['ids'][0]
+
+    response=[]
+    for id in matching_ids:
+        entry= db.get(Journal,int(id))
+        if entry and entry.user_id==current_user.id:
+            response.append({
+                "id":entry.id,
+                "content":entry.content,
+                "sentiment":entry.sentiment,
+                "summary":entry.summary
+            })
+    return{"results":response}
