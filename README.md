@@ -80,7 +80,8 @@ Passlib (bcrypt) — Password hashing
 Groq API — LLM inference  
 Llama 3.3 70B — Journal analysis model  
 Pydantic — Data validation
-
+Sentence Transformers — Text embedding model
+ChromaDB — Vector database for semantic search
 
 --------------------------------------------------
 
@@ -128,7 +129,7 @@ source venv/bin/activate
 
 3. Install dependencies
 
-pip install fastapi uvicorn sqlalchemy passlib[bcrypt] python-jose groq python-dotenv
+pip install fastapi uvicorn sqlalchemy passlib[bcrypt] python-jose groq python-dotenv sentence-transformers chromadb
 
 
 --------------------------------------------------
@@ -334,6 +335,34 @@ This provides a quick overview of the user's emotional trends.
 
 --------------------------------------------------
 
+SEMANTIC SEARCH
+
+GET /search
+
+Search journal entries by meaning, not just keywords.
+
+Example
+
+GET /search?query=feeling stressed about money
+
+Response
+
+{
+  "results": [
+    {
+      "id": 7,
+      "content": "Stressed about the payment of a loan",
+      "sentiment": "Negative",
+      "summary": "The person is feeling stressed about an upcoming loan payment."
+    }
+  ]
+}
+
+Uses sentence embeddings and ChromaDB vector database to find semantically similar entries. 
+Searching "received my salary" returns payment and finance related entries even with zero exact word matches.
+
+--------------------------------------------------
+
 AI PROCESSING PIPELINE
 
 
@@ -411,6 +440,8 @@ Possible enhancements:
 - Async FastAPI endpoints
 - Docker deployment
 - Vector search for journal retrieval
+- Persistent PostgreSQL vector storage
+- Multi-language semantic search
 
 
 --------------------------------------------------
